@@ -15,12 +15,12 @@ def generate(model,tokeniser,prompt,max_new_token=100):
     token=tokeniser.encoder(prompt)
     tokens=torch.tensor(token).unsqueeze(0)
     for _ in range(max_new_token):
-        tokens_cond=tokens[:-32]
+        tokens_cond=tokens[:,-32:]
         logits=model(tokens_cond)
         logits=logits[:,-1,:]
-        probs=F.softwax(logits,dim=-1)
+        probs=F.softmax(logits,dim=-1)
         next_token=torch.multinomial(probs,num_samples=1)
-        tokens=torch.cat([tokens,next_token.unsqueeze(0)],dim=-1)
-    return tokeniser.decoder(tokens.squeeze().tolist())
+        tokens=torch.cat([tokens,next_token],dim=1)
+    return tokeniser.decode(tokens.squeeze().tolist())
 
 print(generate(model,tokeniser, "Once upon"))
